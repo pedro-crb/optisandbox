@@ -1,1 +1,4 @@
-optisandbox is a standalone version of the Opti class extracted from [Aerosandbox](https://github.com/peterdsharpe/AeroSandbox)
+### OptiSandbox
+OptiSandbox is a standalone version of the numpy and optimization modules extracted from [AeroSandbox](https://github.com/peterdsharpe/AeroSandbox).
+
+
