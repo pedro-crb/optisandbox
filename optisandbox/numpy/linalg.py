@@ -1,7 +1,7 @@
 import numpy as _onp
 import casadi as _cas
-from aerosandbox.numpy.arithmetic_monadic import sum, abs
-from aerosandbox.numpy.determine_type import is_casadi_type
+from optisandbox.numpy.arithmetic_monadic import sum, abs
+from optisandbox.numpy.determine_type import is_casadi_type
 from numpy.linalg import *
 
 
@@ -164,6 +164,7 @@ def norm(x, ord=None, axis=None, keepdims=False):
             return _cas.reshape(norm, new_shape)
         else:
             return norm
+
 
 def inv_symmetric_3x3(
         m11,

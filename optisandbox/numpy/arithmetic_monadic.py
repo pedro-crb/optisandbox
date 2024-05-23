@@ -1,6 +1,6 @@
 import numpy as _onp
 import casadi as _cas
-from aerosandbox.numpy.determine_type import is_casadi_type
+from optisandbox.numpy.determine_type import is_casadi_type
 
 
 def sum(x, axis: int = None):
@@ -51,23 +51,6 @@ def abs(x):
     else:
         return _cas.fabs(x)
 
-
-# TODO trace()
-
-# def cumsum(x, axis: int = None):
-#     """
-#     Return the cumulative sum of the elements along a given axis.
-#
-#     See syntax here: https://numpy.org/doc/stable/reference/generated/numpy.cumsum.html
-#     """
-#
-#     if not is_casadi_type(x):
-#         return _onp.cumsum(x, axis=axis)
-#
-#     else:
-#         raise NotImplementedError
-#         if axis is None:
-#             return _cas.cumsum(_onp.flatten(x))
 
 def prod(x, axis: int = None):
     """

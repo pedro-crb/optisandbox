@@ -1,20 +1,20 @@
 import numpy as _onp
 import casadi as _cas
 from typing import Tuple, Iterable, Union
-from aerosandbox.numpy.conditionals import where
+from optisandbox.numpy.conditionals import where
 
-from aerosandbox.numpy.determine_type import is_casadi_type
+from optisandbox.numpy.determine_type import is_casadi_type
 
 
 def _make_casadi_types_broadcastable(x1, x2):
-    def shape_2D(object: Union[float, int, Iterable, _onp.ndarray]) -> Tuple:
-        shape = _onp.shape(object)
-        if len(shape) == 0:
-            return (1, 1)
-        elif len(shape) == 1:
-            return (1, shape[0])
-        elif len(shape) == 2:
-            return shape
+    def shape_2D(_object: Union[float, int, Iterable, _onp.ndarray]) -> Tuple:
+        _shape = _onp.shape(_object)
+        if len(_shape) == 0:
+            return 1, 1
+        elif len(_shape) == 1:
+            return 1, _shape[0]
+        elif len(_shape) == 2:
+            return _shape
         else:
             raise ValueError("CasADi can't handle arrays with >2 dimensions, unfortunately.")
 

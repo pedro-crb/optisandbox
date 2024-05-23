@@ -1,4 +1,4 @@
-import aerosandbox.numpy as np
+import optisandbox.numpy as np
 import pytest
 
 

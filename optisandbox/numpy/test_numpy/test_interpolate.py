@@ -1,4 +1,4 @@
-import aerosandbox.numpy as np
+import optisandbox.numpy as np
 import pytest
 import casadi as cas
 import numpy as onp
@@ -25,10 +25,10 @@ def test_interp():
 
 
 def test_interpn_linear():
-    ### NumPy test
+    # NumPy test
 
-    def value_func_3d(x, y, z):
-        return 2 * x + 3 * y - z
+    def value_func_3d(_x, _y, _z):
+        return 2 * _x + 3 * _y - _z
 
     x = np.linspace(0, 5, 10)
     y = np.linspace(0, 5, 20)
@@ -42,7 +42,7 @@ def test_interpn_linear():
     )
     assert value == pytest.approx(value_func_3d(*point))
 
-    ### CasADi test
+    # CasADi test
     point = cas.DM(point)
     value = np.interpn(
         points, values, point
@@ -51,10 +51,10 @@ def test_interpn_linear():
 
 
 def test_interpn_linear_multiple_samples():
-    ### NumPy test
+    # NumPy test
 
-    def value_func_3d(x, y, z):
-        return 2 * x + 3 * y - z
+    def value_func_3d(_x, _y, _z):
+        return 2 * _x + 3 * _y - _z
 
     x = np.linspace(0, 5, 10)
     y = np.linspace(0, 5, 20)
@@ -80,7 +80,7 @@ def test_interpn_linear_multiple_samples():
     )
     assert len(value) == 2
 
-    ### CasADi test
+    # CasADi test
     point = cas.DM(point)
     value = np.interpn(
         points, values, point
@@ -100,8 +100,8 @@ def test_interpn_bspline_casadi():
     The bspline method should interpolate seperable cubic multidimensional polynomials exactly.
     """
 
-    def func(x, y, z):  # Sphere function
-        return x ** 3 + y ** 3 + z ** 3
+    def func(_x, _y, _z):  # Sphere function
+        return _x ** 3 + _y ** 3 + _z ** 3
 
     x = np.linspace(-5, 5, 10)
     y = np.linspace(-5, 5, 20)
@@ -120,8 +120,8 @@ def test_interpn_bspline_casadi():
 
 
 def test_interpn_bounds_error_one_sample():
-    def value_func_3d(x, y, z):
-        return 2 * x + 3 * y - z
+    def value_func_3d(_x, _y, _z):
+        return 2 * _x + 3 * _y - _z
 
     x = np.linspace(0, 5, 10)
     y = np.linspace(0, 5, 20)
@@ -135,7 +135,7 @@ def test_interpn_bounds_error_one_sample():
             points, values, point
         )
 
-    ### CasADi test
+    # CasADi test
     point = cas.DM(point)
     with pytest.raises(ValueError):
         value = np.interpn(
@@ -144,8 +144,8 @@ def test_interpn_bounds_error_one_sample():
 
 
 def test_interpn_bounds_error_multiple_samples():
-    def value_func_3d(x, y, z):
-        return 2 * x + 3 * y - z
+    def value_func_3d(_x, _y, _z):
+        return 2 * _x + 3 * _y - _z
 
     x = np.linspace(0, 5, 10)
     y = np.linspace(0, 5, 20)
@@ -162,7 +162,7 @@ def test_interpn_bounds_error_multiple_samples():
             points, values, point
         )
 
-    ### CasADi test
+    # CasADi test
     point = cas.DM(point)
     with pytest.raises(ValueError):
         value = np.interpn(
@@ -171,8 +171,8 @@ def test_interpn_bounds_error_multiple_samples():
 
 
 def test_interpn_fill_value():
-    def value_func_3d(x, y, z):
-        return 2 * x + 3 * y - z
+    def value_func_3d(_x, _y, _z):
+        return 2 * _x + 3 * _y - _z
 
     x = np.linspace(0, 5, 10)
     y = np.linspace(0, 5, 20)

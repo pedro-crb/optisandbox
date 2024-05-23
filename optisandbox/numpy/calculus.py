@@ -1,8 +1,8 @@
 import numpy as _onp
 import casadi as _cas
-from aerosandbox.numpy.determine_type import is_casadi_type
-from aerosandbox.numpy.arithmetic_dyadic import centered_mod as _centered_mod
-from aerosandbox.numpy.array import array, concatenate, reshape
+from optisandbox.numpy.determine_type import is_casadi_type
+from optisandbox.numpy.arithmetic_dyadic import centered_mod as _centered_mod
+from optisandbox.numpy.array import array, concatenate, reshape
 from typing import Tuple
 
 
@@ -67,8 +67,8 @@ def gradient(
             derivative (default), 2 is the second derivative. Doing `np.gradient(f, n=2)` results in less discretization
             error than doing `np.gradient(np.gradient(f))`.
 
-        period: The period of the data. If provided, the gradient is taken assuming the data "wraps around" at the period
-            (i.e., modulo the period). See `aerosandbox.numpy.diff()` for more information.
+        period: The period of the data. If provided, the gradient is taken assuming the data "wraps around"
+        at the period (i.e., modulo the period). See `aerosandbox.numpy.diff()` for more information.
 
 
     Returns: The gradient of f.
@@ -95,7 +95,7 @@ def gradient(
             varargs = (1.,)
 
         if len(varargs) == 1:
-            varargs = [varargs[0] for i in range(len(shape))]
+            varargs = [varargs[0] for _ in range(len(shape))]
 
         if len(varargs) != len(shape):
             raise ValueError("You must specify either 0, 1, or N varargs, where N is the number of dimensions of f.")
@@ -155,7 +155,7 @@ def gradient(
             dx_shape[axis] = shape[axis] - 1
             dx = reshape(dx, dx_shape)
 
-            def get_slice(slice_obj: slice) -> Tuple[slice]:
+            def get_slice(slice_obj: slice) -> Tuple[slice, ...]:
                 slices = [slice(None)] * len(shape)
                 slices[axis] = slice_obj
                 return tuple(slices)
@@ -230,9 +230,9 @@ def gradient(
 
             elif n == 2:
                 grad_grad_f = (
-                        2 / (hm + hp) * (
+                    2 / (hm + hp) * (
                         dfp / hp - dfm / hm
-                )
+                    )
                 )
 
                 grad_grad_f_first = grad_grad_f[get_slice(slice(0, 1))]
@@ -251,7 +251,7 @@ def gradient(
                     "A second-order reconstructor only supports first derivatives (n=1) and second derivatives (n=2).")
 
 
-def trapz(x, modify_endpoints=False):  # TODO unify with NumPy trapz, this is different
+def trapz(x, modify_endpoints=False):
     """
     Computes each piece of the approximate integral of `x` via the trapezoidal method with unit spacing.
     Can be viewed as the opposite of diff().
@@ -261,11 +261,14 @@ def trapz(x, modify_endpoints=False):  # TODO unify with NumPy trapz, this is di
 
     Returns: A vector of length N-1 with each piece corresponding to the mean value of the function on the interval
         starting at index i.
+        :param x:
+        :param modify_endpoints:
 
     """
     import warnings
     warnings.warn(
-        "trapz() will eventually be deprecated, since NumPy plans to remove it in the upcoming NumPy 2.0 release (2024). \n"
+        "trapz() will eventually be deprecated, since NumPy plans to remove it in the upcoming "
+        "NumPy 2.0 release (2024). \n"
         "For discrete intervals, use asb.numpy.integrate_discrete_intervals(f, method=\"trapz\") instead.",
         PendingDeprecationWarning)
 
@@ -277,46 +280,3 @@ def trapz(x, modify_endpoints=False):  # TODO unify with NumPy trapz, this is di
         integral[-1] = integral[-1] + x[-1] * 0.5
 
     return integral
-
-
-if __name__ == '__main__':
-    import aerosandbox as asb
-    import aerosandbox.numpy as np
-
-    import casadi as cas
-
-    # print(diff(cas.DM([355, 5]), period=360))
-
-    print(
-        gradient(
-            np.linspace(45, 55, 11) % 50,
-            period=50
-        )
-    )
-
-    #
-    # # a = np.linspace(-500, 500, 21) % 360 - 180
-    # # print(diff(a, period=360))
-    #
-    # x = np.cumsum(np.arange(10))
-    # y = x ** 2
-    #
-    # print(gradient(y, x, edge_order=1))
-    # print(gradient(y, x, edge_order=1))
-    # print(gradient(y, x, edge_order=1, n=2))
-    #
-    # opti = asb.Opti()
-    # x = opti.variable(init_guess=[355, 5])
-    # d = diff(x, period=360)
-    # opti.subject_to([
-    #     # x[0] == 3,
-    #     x[0] > 180,
-    #     x[1] < 180,
-    #     d < 20,
-    #     d > -20
-    # ])
-    # opti.maximize(np.sum(np.cosd(x)))
-    # sol = opti.solve(
-    #     behavior_on_failure="return_last"
-    # )
-    # print(sol(x))

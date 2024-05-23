@@ -1,8 +1,9 @@
 from typing import Union, List, Dict, Callable, Any, Tuple, Set, Optional
+from pathlib import Path
+import inspect
 import json
 import casadi as cas
-import aerosandbox.numpy as np
-from aerosandbox.tools import inspect_tools
+import optisandbox.numpy as np
 from sortedcontainers import SortedDict
 import copy
 
@@ -59,10 +60,10 @@ class Opti(cas.Opti):
 
             When using vector variables, individual components of this vector of variables can be accessed via normal
             indexing. Example:
-                >>> opti = asb.Opti()
-                >>> my_var = opti.variable(n_vars = 5)
-                >>> opti.subject_to(my_var[3] >= my_var[2])  # This is a valid way of indexing
-                >>> my_sum = asb.sum(my_var)  # This will sum up all elements of `my_var`
+                .>>> opti = asb.Opti()
+                .>>> my_var = opti.variable(n_vars = 5)
+                .>>> opti.subject_to(my_var[3] >= my_var[2])  # This is a valid way of indexing
+                .>>> my_sum = asb.sum(my_var)  # This will sum up all elements of `my_var`
 
         Args:
 
@@ -75,24 +76,24 @@ class Opti(cas.Opti):
 
                 For scalar variables, your initial guess should be a float:
 
-                >>> opti = asb.Opti()
-                >>> scalar_var = opti.variable(init_guess=5) # Initializes a scalar variable at a value of 5
+                .>>> opti = asb.Opti()
+                .>>> scalar_var = opti.variable(init_guess=5) # Initializes a scalar variable at a value of 5
 
                 For vector variables, your initial guess should be either:
 
                     * a float, in which case you must pass the length of the vector as `n_vars`, otherwise a scalar
                     variable will be created:
 
-                    >>> opti = asb.Opti()
-                    >>> vector_var = opti.variable(init_guess=5, n_vars=10) # Initializes a vector variable of length
-                    >>> # 10, with all 10 elements set to an initial guess of 5.
+                    .>>> opti = asb.Opti()
+                    .>>> vector_var = opti.variable(init_guess=5, n_vars=10) # Initializes a vector variable of length
+                    .>>> # 10, with all 10 elements set to an initial guess of 5.
 
                     * a NumPy ndarray, in which case each element will be initialized to the corresponding value in
                     the given array:
 
-                    >>> opti = asb.Opti()
-                    >>> vector_var = opti.variable(init_guess=np.linspace(0, 5, 10)) # Initializes a vector variable of
-                    >>> # length 10, with all 10 elements initialized to linearly vary between 0 and 5.
+                    .>>> opti = asb.Opti()
+                    .>>> vector_var = opti.variable(init_guess=np.linspace(0, 5, 10)) # Initializes a vector variable of
+                    .>>> # length 10, with all 10 elements initialized to linearly vary between 0 and 5.
 
                 In the case where the variable is to be log-transformed (see `log_transform`), the initial guess
                 should not be log-transformed as well - just supply the initial guess as usual. (Log-transform of the
@@ -106,9 +107,9 @@ class Opti(cas.Opti):
                 variable to a scalar value, but you don't feel like using `init_guess=value * np.ones(n_vars)`.
                 For example:
 
-                    >>> opti = asb.Opti()
-                    >>> vector_var = opti.variable(init_guess=5, n_vars=10) # Initializes a vector variable of length
-                    >>> # 10, with all 10 elements set to an initial guess of 5.
+                    .>>> opti = asb.Opti()
+                    .>>> vector_var = opti.variable(init_guess=5, n_vars=10) # Initializes a vector variable of length
+                    .>>> # 10, with all 10 elements set to an initial guess of 5.
 
             scale: [Optional] Approximate scale of the variable.
 
@@ -137,30 +138,31 @@ class Opti(cas.Opti):
                     freeze the variable: the variable will be frozen based on the value in the cache file (and ignore
                     the `init_guess`). Example:
 
-                        >>> opti = Opti(cache_filename="my_file.json", variable_categories_to_freeze=["Wheel Sizing"])
-                        >>> # Assume, for example, that `my_file.json` was from a previous run where my_var=10.
-                        >>> my_var = opti.variable(init_guess=5, category="Wheel Sizing")
-                        >>> # This will freeze my_var at a value of 10 (from the cache file, not the init_guess)
+                        .>>> opti = Opti(cache_filename="my_file.json", variable_categories_to_freeze=["Wheel Sizing"])
+                        .>>> # Assume, for example, that `my_file.json` was from a previous run where my_var=10.
+                        .>>> my_var = opti.variable(init_guess=5, category="Wheel Sizing")
+                        .>>> # This will freeze my_var at a value of 10 (from the cache file, not the init_guess)
 
                     * If the Opti instance is associated with a cache file, and you told it to freeze a specific
                     category(s) of variables that your variable is a member of, but you then manually specified that
                     the variable should be frozen: the variable will once again be frozen at the value of `init_guess`:
 
-                        >>> opti = Opti(cache_filename="my_file.json", variable_categories_to_freeze=["Wheel Sizing"])
-                        >>> # Assume, for example, that `my_file.json` was from a previous run where my_var=10.
-                        >>> my_var = opti.variable(init_guess=5, category="Wheel Sizing", freeze=True)
-                        >>> # This will freeze my_var at a value of 5 (`freeze` overrides category loading.)
+                        .>>> opti = Opti(cache_filename="my_file.json", variable_categories_to_freeze=["Wheel Sizing"])
+                        .>>> # Assume, for example, that `my_file.json` was from a previous run where my_var=10.
+                        .>>> my_var = opti.variable(init_guess=5, category="Wheel Sizing", freeze=True)
+                        .>>> # This will freeze my_var at a value of 5 (`freeze` overrides category loading.)
 
                 Motivation for freezing variables:
 
-                    The ability to freeze variables is exceptionally useful when designing engineering systems. Let's say
-                    we're designing an airplane. In the beginning of the design process, we're doing "clean-sheet" design
-                    - any variable is up for grabs for us to optimize on, because the airplane doesn't exist yet!
-                    However, the farther we get into the design process, the more things get "locked in" - we may have
-                    ordered jigs, settled on a wingspan, chosen an engine, et cetera. So, if something changes later (
-                    let's say that we discover that one of our assumptions was too optimistic halfway through the design
-                    process), we have to make up for that lost margin using only the variables that are still free. To do
-                    this, we would freeze the variables that are already decided on.
+                    The ability to freeze variables is exceptionally useful when designing engineering systems. Let's
+                    say we're designing an airplane. In the beginning of the design process, we're doing
+                    "clean-sheet" design - any variable is up for grabs for us to optimize on, because the airplane
+                    doesn't exist yet! However, the farther we get into the design process, the more things get
+                    "locked in" - we may have ordered jigs, settled on a wingspan, chosen an engine, et cetera. So,
+                    if something changes later ( let's say that we discover that one of our assumptions was too
+                    optimistic halfway through the design process), we have to make up for that lost margin using
+                    only the variables that are still free. To do this, we would freeze the variables that are
+                    already decided on.
 
                     By categorizing variables, you can also freeze entire categories of variables. For example,
                     you can freeze all of the wing design variables for an airplane but leave all of the fuselage
@@ -170,10 +172,10 @@ class Opti(cas.Opti):
                     design, but change the operating conditions.
 
             log_transform: [Optional] Advanced use only. A flag of whether to internally-log-transform this variable
-                before passing it to the optimizer. Good for known positive engineering quantities that become nonsensical
-                if negative (e.g. mass). Log-transforming these variables can also help maintain convexity.
+            before passing it to the optimizer. Good for known positive engineering quantities that become
+            nonsensical if negative (e.g. mass). Log-transforming these variables can also help maintain convexity.
 
-            category: [Optional] What category of variables does this belong to? # TODO expand docs
+            category: [Optional] What category of variables does this belong to?
 
             lower_bound: [Optional] If provided, defines a bounds constraint on the new variable that keeps the
                 variable above a given value.
@@ -190,7 +192,7 @@ class Opti(cas.Opti):
             The variable itself as a symbolic CasADi variable (MX type).
 
         """
-        ### Set defaults
+        # Set defaults
         if init_guess is None:
             import warnings
             if log_transform:
@@ -208,15 +210,9 @@ class Opti(cas.Opti):
             else:
                 scale = np.mean(np.fabs(init_guess))  # Initialize the scale to a heuristic based on the init_guess
                 if isinstance(scale,
-                              cas.MX) or scale == 0:  # If that heuristic leads to a scale of 0, use a scale of 1 instead.
+                              cas.MX) or scale == 0:
+                    # If that heuristic leads to a scale of 0, use a scale of 1 instead.
                     scale = 1
-
-                # scale = np.fabs(
-                #     np.where(
-                #         init_guess != 0,
-                #         init_guess,
-                #         1
-                #     ))
 
         length_init_guess = np.length(init_guess)
 
@@ -226,7 +222,7 @@ class Opti(cas.Opti):
         # Try to convert init_guess to a float or np.ndarray if it is an Opti parameter.
         try:
             init_guess = self.value(init_guess)
-        except RuntimeError as e:
+        except RuntimeError as _:
             if not (
                     freeze and self.freeze_style == "float"
             ):
@@ -251,7 +247,10 @@ class Opti(cas.Opti):
         ):
             freeze = True
 
-        # If the variable is to be frozen, return the initial guess. Otherwise, define the variable using CasADi symbolics.
+        # If the variable is to be frozen, return the initial guess. Otherwise,
+        # define the variable using CasADi symbolics.
+        log_scale = None
+        log_var = None
         if freeze:
             if self.freeze_style == "parameter":
                 var = self.parameter(n_params=n_vars, value=init_guess)
@@ -273,7 +272,7 @@ class Opti(cas.Opti):
                 self.set_initial(log_var, np.log(init_guess))
 
             # Track where this variable was declared in code.
-            filename, lineno, code_context = inspect_tools.get_caller_source_location(stacklevel=_stacklevel + 1)
+            filename, lineno, code_context = get_caller_source_location(stacklevel=_stacklevel + 1)
             self._variable_declarations[self._variable_index_counter] = (
                 filename,
                 lineno,
@@ -293,7 +292,7 @@ class Opti(cas.Opti):
 
         # Apply bounds
         if not (freeze and self.ignore_violated_parametric_constraints):
-            if (not log_transform) or (freeze):
+            if (not log_transform) or freeze:
                 if lower_bound is not None:
                     self.subject_to(
                         var / scale >= lower_bound / scale,
@@ -330,22 +329,22 @@ class Opti(cas.Opti):
 
                 Inequality example:
 
-                >>> x = opti.variable()
-                >>> opti.subject_to(x >= 5)
+                .>>> x = opti.variable()
+                .>>> opti.subject_to(x >= 5)
 
                 Equality example; also showing that you can directly constrain functions of variables:
 
-                >>> x = opti.variable()
-                >>> f = np.sin(x)
-                >>> opti.subject_to(f == 0.5)
+                .>>> x = opti.variable()
+                .>>> f = np.sin(x)
+                .>>> opti.subject_to(f == 0.5)
 
                 You can also pass in a list of multiple constraints using list syntax. For example:
 
-                >>> x = opti.variable()
-                >>> opti.subject_to([
-                >>>     x >= 5,
-                >>>     x <= 10
-                >>> ])
+                .>>> x = opti.variable()
+                .>>> opti.subject_to([
+                .>>>     x >= 5,
+                .>>>     x <= 10
+                .>>> ])
 
             _stacklevel: Optional and advanced, purely used for debugging. Allows users to correctly track where
             constraints are declared in the event that they are subclassing `aerosandbox.Opti`. Modifies the
@@ -374,7 +373,7 @@ class Opti(cas.Opti):
 
             # Track where this constraint was declared in code.
             n_cons = np.length(constraint)
-            filename, lineno, code_context = inspect_tools.get_caller_source_location(stacklevel=_stacklevel + 1)
+            filename, lineno, code_context = get_caller_source_location(stacklevel=_stacklevel + 1)
             self._constraint_declarations[self._constraint_index_counter] = (
                 filename,
                 lineno,
@@ -401,7 +400,8 @@ class Opti(cas.Opti):
                     RHS_value = self.value(RHS)
                 except Exception:
                     raise ValueError(
-                        """Could not evaluate the LHS and RHS of the constraint - are you sure you passed in a comparative expression?""")
+                        """Could not evaluate the LHS and RHS of the constraint - are you sure you passed in a 
+                        comparative expression?""")
 
                 constraint_satisfied = np.allclose(LHS_value,
                                                    RHS_value)  # Call the constraint satisfied if it is *almost* true.
@@ -446,24 +446,24 @@ class Opti(cas.Opti):
                 (Although it can be overridden using the `n_params` parameter; see below.)
 
                 For scalar parameters, your value should be a float:
-                >>> opti = asb.Opti()
-                >>> scalar_param = opti.parameter(value=5) # Initializes a scalar parameter and sets its value to 5.
+                .>>> opti = asb.Opti()
+                .>>> scalar_param = opti.parameter(value=5) # Initializes a scalar parameter and sets its value to 5.
 
                 For vector variables, your value should be either:
 
                     * a float, in which case you must pass the length of the vector as `n_params`, otherwise a scalar
                     parameter will be created:
 
-                    >>> opti = asb.Opti()
-                    >>> vector_param = opti.parameter(value=5, n_params=10) # Initializes a vector parameter of length
-                    >>> # 10, with all 10 elements set to value of 5.
+                    .>>> opti = asb.Opti()
+                    .>>> vector_param = opti.parameter(value=5, n_params=10) # Initializes a vector parameter of length
+                    .>>> # 10, with all 10 elements set to value of 5.
 
                     * a NumPy ndarray, in which case each element will be set to the corresponding value in the given
                     array:
 
-                    >>> opti = asb.Opti()
-                    >>> vector_param = opti.parameter(value=np.linspace(0, 5, 10)) # Initializes a vector parameter of
-                    >>> # length 10, with all 10 elements set to a value varying from 0 to 5.
+                    .>>> opti = asb.Opti()
+                    .>>> vector_param = opti.parameter(value=np.linspace(0, 5, 10)) # Initializes a vector parameter of
+                    .>>> # length 10, with all 10 elements set to a value varying from 0 to 5.
 
             n_params: [Optional] Used to manually override the dimensionality of the parameter to create; if not
                 provided, the dimensionality of the parameter is inferred from `value`.
@@ -472,9 +472,9 @@ class Opti(cas.Opti):
                 parameter to a scalar value, but you don't feel like using `value=my_value * np.ones(n_vars)`.
                 For example:
 
-                    >>> opti = asb.Opti()
-                    >>> vector_param = opti.parameter(value=5, n_params=10) # Initializes a vector parameter of length
-                    >>> # 10, with all 10 elements set to a value of 5.
+                    .>>> opti = asb.Opti()
+                    .>>> vector_param = opti.parameter(value=5, n_params=10) # Initializes a vector parameter of length
+                    .>>> # 10, with all 10 elements set to a value of 5.
 
         Returns:
             The parameter itself as a symbolic CasADi variable (MX type).
@@ -498,9 +498,9 @@ class Opti(cas.Opti):
               max_runtime: float = 1e20,
               callback: Callable[[int], Any] = None,
               verbose: bool = True,
-              jit: bool = False,  # TODO document, add unit tests for jit
-              detect_simple_bounds: bool = False,  # TODO document
-              options: Dict = None,  # TODO document
+              jit: bool = False,
+              detect_simple_bounds: bool = False,
+              options: Dict = None,
               behavior_on_failure: str = "raise",
               ) -> "OptiSol":
         """
@@ -509,18 +509,6 @@ class Opti(cas.Opti):
         Args:
             parameter_mapping: [Optional] Allows you to specify values for parameters.
                 Dictionary where the key is the parameter and the value is the value to be set to.
-
-                Example: # TODO update syntax for required init_guess
-                    >>> opti = asb.Opti()
-                    >>> x = opti.variable()
-                    >>> p = opti.parameter()
-                    >>> opti.minimize(x ** 2)
-                    >>> opti.subject_to(x >= p)
-                    >>> sol = opti.solve(
-                    >>>     {
-                    >>>         p: 5 # Sets the value of parameter p to 5, then solves.
-                    >>>     }
-                    >>> )
 
             max_iter: [Optional] The maximum number of iterations allowed before giving up.
 
@@ -540,6 +528,8 @@ class Opti(cas.Opti):
                 using the CasADi JIT compiler. This can lead to significant speedups, but may also lead to
                 unexpected behavior, and may not work on all platforms.
 
+            detect_simple_bounds:
+
             options: [Optional] A dictionary of options to pass to IPOPT. See the IPOPT documentation for a list of
                 available options.
 
@@ -555,14 +545,14 @@ class Opti(cas.Opti):
             my_optisol(variable).
 
             Example:
-                >>> sol = opti.solve()
-                >>> x_opt = sol(x) # Get the value of variable x at the optimum.
+                .>>> sol = opti.solve()
+                .>>> x_opt = sol(x) # Get the value of variable x at the optimum.
 
         """
         if parameter_mapping is None:
             parameter_mapping = {}
 
-        ### If you're loading frozen variables from cache, do it here:
+        # If you're loading frozen variables from cache, do it here:
         if self.load_frozen_variables_from_cache:
             solution_dict = self.get_solution_dict_from_cache()
             for category in self.variable_categories_to_freeze:
@@ -582,37 +572,39 @@ class Opti(cas.Opti):
                             var: val
                         }
 
-        ### Map any parameters to needed values
+        # Map any parameters to needed values
         for k, v in parameter_mapping.items():
             if not np.is_casadi_type(k, recursive=False):
                 raise TypeError(
-                    f"All keys in `parameter_mapping` must be CasADi parameters; you gave an object of type \'{type(k).__name__}\'.\n"
+                    f"All keys in `parameter_mapping` must be CasADi parameters; you gave an object of type "
+                    f"\'{type(k).__name__}\'.\n"
                     f"In general, make sure all keys are the result of calling `opti.parameter()`.")
 
             size_k = np.prod(k.shape)
             try:
+                # noinspection PyUnresolvedReferences
                 size_v = np.prod(v.shape)
             except AttributeError:
                 size_v = 1
             if size_k != size_v:
                 raise RuntimeError("""Problem with loading cached solution: it looks like the length of a vectorized 
-                variable has changed since the cached solution was saved (or variables were defined in a different order). 
-                Because of this, the cache cannot be loaded. 
-                Re-run the original optimization study to regenerate the cached solution.""")
+                variable has changed since the cached solution was saved (or variables were defined in a different 
+                order). Because of this, the cache cannot be loaded. Re-run the original optimization study to 
+                regenerate the cached solution.""")
 
             self.set_value(k, v)
 
-        ### Set solver settings.
+        # Set solver settings.
         if options is None:
             options = {}
 
         default_options = {
-            "ipopt.sb"                   : 'yes',  # Hide the IPOPT banner.
-            "ipopt.max_iter"             : max_iter,
-            "ipopt.max_cpu_time"         : max_runtime,
-            "ipopt.mu_strategy"          : "adaptive",
+            "ipopt.sb": 'yes',  # Hide the IPOPT banner.
+            "ipopt.max_iter": max_iter,
+            "ipopt.max_cpu_time": max_runtime,
+            "ipopt.mu_strategy": "adaptive",
             "ipopt.fast_step_computation": "yes",
-            "detect_simple_bounds"       : detect_simple_bounds,
+            "detect_simple_bounds": detect_simple_bounds,
         }
 
         if jit:
@@ -639,6 +631,7 @@ class Opti(cas.Opti):
             self.callback(callback)
 
         # Do the actual solve
+        sol = None
         if behavior_on_failure == "raise":
             sol = OptiSol(
                 opti=self,
@@ -685,8 +678,8 @@ class Opti(cas.Opti):
         }
 
         # Split parameter_mappings up so that it can be passed into run() via np.vectorize
-        keys: Tuple[cas.MX] = tuple(parameter_mapping.keys())
-        values: Tuple[np.ndarray[float]] = tuple(parameter_mapping.values())
+        keys: Tuple[cas.MX, ...] = tuple(parameter_mapping.keys())
+        values: Tuple[np.ndarray[float] | cas.MX, ...] = tuple(parameter_mapping.values())
 
         # Display an output
         if verbose:
@@ -771,13 +764,13 @@ class Opti(cas.Opti):
         else:
             return sols
 
-    ### Debugging Methods
+    # Debugging Methods
     def find_variable_declaration(self,
                                   index: int,
                                   use_full_filename: bool = False,
                                   return_string: bool = False,
                                   ) -> Union[None, str]:
-        ### Check inputs
+        # Check inputs
         if index < 0:
             raise ValueError("Indices must be nonnegative.")
         if index >= self._variable_index_counter:
@@ -788,7 +781,7 @@ class Opti(cas.Opti):
         index_of_first_element = self._variable_declarations.iloc[self._variable_declarations.bisect_right(index) - 1]
 
         filename, lineno, code_context, n_vars = self._variable_declarations[index_of_first_element]
-        source = inspect_tools.get_source_code_from_location(
+        source = get_source_code_from_location(
             filename=filename,
             lineno=lineno,
             code_context=code_context,
@@ -816,7 +809,7 @@ class Opti(cas.Opti):
                                     use_full_filename: bool = False,
                                     return_string: bool = False
                                     ) -> Union[None, str]:
-        ### Check inputs
+        # Check inputs
         if index < 0:
             raise ValueError("Indices must be nonnegative.")
         if index >= self._constraint_index_counter:
@@ -829,7 +822,7 @@ class Opti(cas.Opti):
             ]
 
         filename, lineno, code_context, n_cons = self._constraint_declarations[index_of_first_element]
-        source = inspect_tools.get_source_code_from_location(
+        source = get_source_code_from_location(
             filename=filename,
             lineno=lineno,
             code_context=code_context,
@@ -852,7 +845,7 @@ class Opti(cas.Opti):
         else:
             print(string)
 
-    ### Advanced Methods
+    # Advanced Methods
 
     def set_initial_from_sol(self,
                              sol: cas.OptiSol,
@@ -876,8 +869,8 @@ class Opti(cas.Opti):
 
     def save_solution(self):
         if self.cache_filename is None:
-            raise ValueError("""In order to use the save feature, you need to supply a filepath for the cache upon
-                   initialization of this instance of the Opti stack. For example: Opti(cache_filename = "cache.json")""")
+            raise ValueError("""In order to use the save feature, you need to supply a filepath for the cache upon 
+            initialization of this instance of the Opti stack. For example: Opti(cache_filename = "cache.json")""")
 
         # Write a function that tries to turn an iterable into a JSON-serializable list
         def try_to_put_in_list(iterable):
@@ -908,8 +901,8 @@ class Opti(cas.Opti):
 
     def get_solution_dict_from_cache(self):
         if self.cache_filename is None:
-            raise ValueError("""In order to use the load feature, you need to supply a filepath for the cache upon
-                   initialization of this instance of the Opti stack. For example: Opti(cache_filename = "cache.json")""")
+            raise ValueError("""In order to use the load feature, you need to supply a filepath for the cache upon 
+            initialization of this instance of the Opti stack. For example: Opti(cache_filename = "cache.json")""")
 
         with open(self.cache_filename, "r") as f:
             solution_dict = json.load(fp=f)
@@ -921,7 +914,7 @@ class Opti(cas.Opti):
 
         return solution_dict
 
-    ### Methods for Dynamics and Control Problems
+    # Methods for Dynamics and Control Problems
 
     def derivative_of(self,
                       variable: cas.MX,
@@ -1013,21 +1006,21 @@ class Opti(cas.Opti):
         Returns: A vector consisting of the derivative of the parameter `variable` with respect to `with_respect_to`.
 
         """
-        ### Set defaults
+        # Set defaults
         # if with_respect_to is None:
         #     with_respect_to = np.ones(shape=np.length(variable)) # TODO consider whether we want to even allow this...
         # if derivative_init_guess is None:
         #     raise NotImplementedError() # TODO implement default value for this
 
-        ### Check inputs
+        # Check inputs
         N = np.length(variable)
         if not np.length(with_respect_to) == N:
             raise ValueError("The inputs `variable` and `with_respect_to` must be vectors of the same length!")
 
-        ### Clean inputs
+        # Clean inputs
         method = method.lower()
 
-        ### Implement the derivative
+        # Implement the derivative
         if not explicit:
             derivative = self.variable(
                 init_guess=derivative_init_guess,
@@ -1133,7 +1126,7 @@ class Opti(cas.Opti):
 
         # TODO scale constraints by variable scale?
         # TODO make
-        from aerosandbox.numpy.integrate_discrete import integrate_discrete_intervals
+        from optisandbox.numpy.integrate_discrete import integrate_discrete_intervals
 
         integrals = integrate_discrete_intervals(
             f=derivative,
@@ -1167,23 +1160,23 @@ class OptiSol:
             An `OptiSol` object.
 
         Usage:
-            >>> # Initialize an Opti object.
-            >>> opti = asb.Opti()
-            >>>
-            >>> # Define a scalar variable.
-            >>> x = opti.variable(init_guess=2.0)
-            >>>
-            >>> # Define an objective function.
-            >>> opti.minimize(x ** 2)
-            >>>
-            >>> # Solve the optimization problem. `sol` is now a
-            >>> sol = opti.solve()
-            >>>
-            >>> # Retrieve the value of the variable x in the solution:
-            >>> x_value = sol(x)
-            >>>
-            >>> # Or, to be more concise:
-            >>> x_value = sol(x)
+            .>>> # Initialize an Opti object.
+            .>>> opti = asb.Opti()
+            .>>>
+            .>>> # Define a scalar variable.
+            .>>> x = opti.variable(init_guess=2.0)
+            .>>>
+            .>>> # Define an objective function.
+            .>>> opti.minimize(x ** 2)
+            .>>>
+            .>>> # Solve the optimization problem. `sol` is now a
+            .>>> sol = opti.solve()
+            .>>>
+            .>>> # Retrieve the value of the variable x in the solution:
+            .>>> x_value = sol(x)
+            .>>>
+            .>>> # Or, to be more concise:
+            .>>> x_value = sol(x)
         """
         self.opti = opti
         self._sol = cas_optisol
@@ -1207,10 +1200,10 @@ class OptiSol:
         """
         Gets the value of a variable at the solution point. For developer use - see following paragraph.
 
-        This method is basically a less-powerful version of calling `sol(x)` - if you're a
-            user and not a developer, you almost-certainly want to use that method instead, as those are less
-            fragile with respect to various input data types. This method exists only as an abstraction to make it easier
-            for other developers to subclass OptiSol, if they wish to intercept the variable substitution process.
+        This method is basically a less-powerful version of calling `sol(x)` - if you're a user and not a developer,
+        you almost-certainly want to use that method instead, as those are less fragile with respect to various input
+        data types. This method exists only as an abstraction to make it easier for other developers to subclass
+        OptiSol, if they wish to intercept the variable substitution process.
 
         Args:
             x:
@@ -1235,9 +1228,9 @@ class OptiSol:
             or array values.
 
         Note that, for convenience, you can simply call:
-        >>> sol(x)
+        .>>> sol(x)
         if you prefer. This is equivalent to calling this method with the syntax:
-        >>> sol.value(x)
+        .>>> sol.value(x)
         (these are aliases of each other)
 
         Args:
@@ -1377,29 +1370,194 @@ class OptiSol:
                 self.opti.find_constraint_declaration(index=i)
 
 
-if __name__ == '__main__':
-    import pytest
+def get_caller_source_location(
+        stacklevel: int = 1,
+) -> (Path, int, str):
+    """
+    Gets the file location where this function itself (`get_caller_source_location()`) is called.
 
-    # pytest.main()
+    This is not usually useful by itself. However, with the use of the `stacklevel` argument, you can get the call
+    location at any point arbitrarily high up in the call stack from this function.
 
-    opti = Opti()  # set up an optimization environment
+    This potentially lets you determine the file location where any Python object was declared.
 
-    a = opti.parameter(1)
-    b = opti.parameter(100)
+    Examples:
 
-    # Define optimization variables
-    x = opti.variable(init_guess=0)
-    y = opti.variable(init_guess=0)
+        Consider the file below (and assume we somehow have this function in scope):
 
-    # Define objective
-    f = (a - x) ** 2 + b * (y - x ** 2) ** 2
-    opti.minimize(f)
+        my_file.py:
+        .>>> def my_func():
+        .>>>     print(
+        .>>>         get_caller_source_location(stacklevel=2)
+        .>>>     )
+        .>>>
+        .>>> if_you_can_see_this_it_works = my_func()
 
-    opti.subject_to([
-        x ** 2 + y ** 2 <= 1
-    ])
+        This will print out the following:
+        (/path/to/my_file.py, 5, "if_you_can_see_this_it_works = my_func()\n")
 
-    # Optimize
-    sol = opti.solve()
+    Args:
 
-    assert sol([x, y]) == pytest.approx([0.7864, 0.6177], abs=1e-3)
+        stacklevel: Choose the level of the stack that you want to retrieve source code at. Higher integers will get
+        you higher (i.e., more end-user-facing) in the stack. Same behaviour as the `stacklevel` argument in
+        warnings.warn().
+
+    Returns: A tuple of:
+        (filename, lineno, code_context)
+
+        * `filename`: a Path object (see `pathlib.Path` from the standard Python library) of the file where this
+        function was called.
+
+        * `lineno`: the line number in the file where this function was called.
+
+        * `code_context`: the immediate line of code where this function was called. A string. Note that, in the case
+        of multiline statements, this may not be a complete Python expression. Includes the trailing newline
+        character ("\n") at the end.
+
+    """
+    # Go up `stacklevel` frames from the current one to get to the caller frame.
+    frame = inspect.currentframe()
+    for _ in range(stacklevel):
+        frame = frame.f_back
+
+    # Extract the frame info (an `inspect.Traceback` type) from the caller frame
+    frame_info: inspect.Traceback = inspect.getframeinfo(frame)
+
+    filename = Path(frame_info.filename)
+    lineno = frame_info.lineno
+    if frame_info.code_context is not None:
+        code_context = "".join(frame_info.code_context)
+    else:
+        code_context = ""
+
+    return filename, lineno, code_context
+
+
+def get_source_code_from_location(
+        filename: Union[Path, str],
+        lineno: int,
+        code_context: str = None,
+        strip_lines: bool = False
+) -> str:
+    """
+    Gets the source code of the single statement that begins at the file location specified.
+
+    File location must, at a minimum, contain the filename and the line number. Optionally, you can also provide
+    `code_context`.
+
+     These should have the format:
+
+        * `filename`: a Path object (see `pathlib.Path` from the standard Python library) of the file where this
+        function was called.
+
+        * `lineno`: the line number in the file where this function was called.
+
+    Optionally, you can also provide `code_context`, which has the format:
+
+        * `code_context`: the immediate line of code where this function was called. A string. Note that, in the case of
+        multiline statements, this may not be a complete Python expression.
+
+    You can get source code from further up the call stack by using the `stacklevel` argument.
+
+    Args:
+
+        filename: a Path object (see `pathlib.Path` from the standard Python library) of the file where this function
+        was called. Alternatively, a string containing a filename.
+
+        lineno: the line number in the file where this function was called. An integer. Should refer to the first
+        line of a string in question.
+
+        code_context: Optional. Should be a string containing the immediate line of code at this location. If
+        provided, allows short-circuiting (bypassing file I/O) if the line is a complete expression.
+
+        strip_lines: A boolean flag about whether or not to strip leading and trailing whitespace off each line of a
+        multi-line function call. See the built-in string method `str.strip()` for behaviour.
+
+    Returns: The source code of the call, as a string. Might be a multi-line string (i.e., contains '\n' characters)
+    if the call is multi-line. Almost certainly (but not guaranteed due to edge cases) to be a complete Python
+    expression.
+    """
+
+    # If Python's auto-extracted "code context" is a compete statement, then you're done here.
+    if code_context is not None:
+        if has_balanced_parentheses(code_context):
+            return code_context
+
+    # Initialize the caller source lines, which is a list of strings that contain the source for the call.
+    source_lines: List[str] = []
+
+    # Read the source lines of code surrounding the call
+    try:
+        with open(filename, "r") as f:  # Read the file containing the call
+            for _ in range(lineno - 1):  # Skip the first N lines of code, until you get to the call
+                f.readline()
+
+            parenthesis_level = 0
+
+            def add_line() -> None:
+                """
+                Adds the subsequent line to the caller source lines (`caller_source_lines`). In-place.
+                """
+                line = f.readline()
+
+                if strip_lines:
+                    line = line.strip()
+
+                nonlocal parenthesis_level
+                for char in line:
+                    if char == "(":
+                        parenthesis_level += 1
+                    elif char == ")":
+                        parenthesis_level -= 1
+                source_lines.append(line)
+
+            # Get the first line, which is always part of the function call, and includes the opening parenthesis
+            add_line()
+
+            # Do subsequent lines
+            while parenthesis_level > 0:
+                add_line()
+    except OSError as _:
+        raise FileNotFoundError(
+            "\n".join([
+                "Couldn't retrieve source code at this stack level, because the source code file couldn't be opened "
+                "for some reason.",
+                "One common possible reason is that you're referring to an IPython console with a multi-line statement."
+            ])
+        )
+
+    source = "".join(source_lines)
+
+    return source
+
+
+def has_balanced_parentheses(string: str, left="(", right=")") -> bool:
+    """
+    Determines whether a string has matching parentheses or not.
+
+    Examples:
+
+        .>>> has_balanced_parentheses("3 * (x + (2 ** 5))") -> True
+
+        .>>> has_balanced_parentheses("3 * (x + (2 ** 5)") -> False
+
+    Args:
+
+        string: The string to be evaluated.
+
+        left: The left parentheses. Can be modified if, for example, you need to check square brackets.
+
+        right: The right parentheses. Can be modified if, for example, you need to check square brackets.
+
+    Returns: A boolean of whether or not the string has balanced parentheses.
+
+    """
+    parenthesis_level = 0
+
+    for char in string:
+        if char == left:
+            parenthesis_level += 1
+        elif char == right:
+            parenthesis_level -= 1
+
+    return parenthesis_level == 0

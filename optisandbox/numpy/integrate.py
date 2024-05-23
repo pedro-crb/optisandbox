@@ -1,6 +1,6 @@
-import aerosandbox.numpy as np
+import optisandbox.numpy as np
 import casadi as _cas
-from typing import Union, Callable, Tuple, Optional, Dict, Any, List
+from typing import Union, Callable, Tuple, Optional, Any, List
 from scipy import integrate
 
 
@@ -12,7 +12,8 @@ def quad(
         variable_of_integration: _cas.MX = None,
 ) -> Union[
     Tuple[float, float],
-    Tuple[float, float, dict]
+    Tuple[float, float, dict],
+    Tuple[float, float, dict, Any, Any]
 ]:
     if np.is_casadi_type(func):
 
@@ -34,9 +35,9 @@ def quad(
             'integrator',
             'cvodes',
             {
-                'x'  : _cas.MX.sym('dummy_variable'),
-                'p'  : _cas.vertcat(*parameters),
-                't'  : variable_of_integration,
+                'x': _cas.MX.sym('dummy_variable'),
+                'p': _cas.vertcat(*parameters),
+                't': variable_of_integration,
                 'ode': func,
             },
             a,  # t0
@@ -192,10 +193,10 @@ def solve_ivp(
             'cvodes',
             # 'idas',
             {
-                'x'   : y_variables,
-                'p'   : parameters,
-                't'   : t_variable,
-                'ode' : ode,
+                'x': y_variables,
+                'p': parameters,
+                't': t_variable,
+                'ode': ode,
                 'quad': 1,
             },
             0,
@@ -226,72 +227,3 @@ def solve_ivp(
 
     else:
         raise ValueError(f"Invalid backend: {backend}")
-
-
-if __name__ == '__main__':
-    # t = cas.MX.sym("t")
-    # print(
-    #     quad(
-    #         func=t ** 2,
-    #         a=0,
-    #         b=1,
-    #     )
-    # )
-
-    def lotkavolterra_func(t, z):
-        a, b, c, d = 1.5, 1, 3, 1
-        z = _cas.MX(z)
-        x = z[0]
-        y = z[1]
-        return [a * x - b * x * y, -c * y + d * x * y]
-
-
-    t_eval = np.linspace(0, 15, 3000)
-    tf = _cas.MX.sym("tf")
-    # t_eval = np.linspace(0, tf, 100)
-
-    sol = solve_ivp(
-        lotkavolterra_func,
-        t_span=(t_eval[0], t_eval[-1]),
-        # t_eval=t_eval,
-        y0=[10, 5],
-    )
-
-    z = sol.y
-    import matplotlib.pyplot as plt
-
-    plt.plot(
-        _cas.evalf(_cas.substitute(sol.t.T, tf, 15)),
-        _cas.evalf(_cas.substitute(sol.y.T, tf, 15)),
-    )
-    plt.xlabel('t')
-    plt.legend(['x', 'y'], shadow=True)
-    plt.title('Lotka-Volterra System')
-    plt.show()
-
-    t = _cas.MX.sym("t")
-    m = _cas.MX.sym("m")
-    n = _cas.MX.sym("n")
-    a, b, c, d = 1.5, 1, 3, 1
-    lotkavolterra_expr = np.array([
-        a * m - b * m * n,
-        -c * n + d * m * n,
-    ])
-
-    sol = solve_ivp(
-        lotkavolterra_expr,
-        t_span=(t_eval[0], t_eval[-1]),
-        t_eval=t_eval,
-        y0=[10, 5],
-        t_variable=t,
-        # y_variables=[m, n],
-    )
-
-    plt.plot(
-        _cas.evalf(_cas.substitute(sol.t.T, tf, 15)),
-        _cas.evalf(_cas.substitute(sol.y.T, tf, 15)),
-    )
-    plt.xlabel('t')
-    plt.legend(['x', 'y'], shadow=True)
-    plt.title('Lotka-Volterra System')
-    plt.show()

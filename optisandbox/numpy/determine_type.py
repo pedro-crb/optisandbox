@@ -4,7 +4,7 @@ from typing import Any
 
 
 def is_casadi_type(
-        object: Any,
+        _object: Any,
         recursive: bool = True
 ) -> bool:
     """
@@ -13,18 +13,18 @@ def is_casadi_type(
 
     Args:
 
-        object: The object to evaluate.
+        _object: The object to evaluate.
 
         recursive: If the object is a list or tuple, recursively iterate through every subelement. If any of the
-        subelements (at any depth) are a CasADi type, return True. Otherwise, returns False.
+            subelements (at any depth) are a CasADi type, return True. Otherwise, returns False.
 
     Returns: A boolean if the object is (or contains, if recursive=True) a CasADi data type.
 
     """
-    t = type(object)
+    t = type(_object)
 
     # NumPy arrays cannot be or contain CasADi types, unless they are object arrays
-    if t == _onp.ndarray and object.dtype != 'O':
+    if t == _onp.ndarray and _object.dtype != 'O':
         return False
 
     # Skip certain Python types known not to be or contain CasADi types.
@@ -46,23 +46,24 @@ def is_casadi_type(
     ):
         return True
 
-    # At this point, we know it's not a CasADi type, but we don't know if it *contains* a CasADi type (relevant if recursing)
+    # At this point, we know it's not a CasADi type, but we don't know if it
+    # *contains* a CasADi type (relevant if recursing)
     if recursive:
         if (
                 issubclass(t, list) or
                 issubclass(t, tuple) or
                 issubclass(t, set) or
                 (
-                        t == _onp.ndarray and object.dtype == 'O'
+                        t == _onp.ndarray and _object.dtype == 'O'
                 )
         ):
-            for element in object:
+            for element in _object:
                 if is_casadi_type(element, recursive=True):
                     return True
             return False
 
         if issubclass(t, dict):
-            for kv in object.items():
+            for kv in _object.items():
                 if is_casadi_type(kv, recursive=True):
                     return True
             return False

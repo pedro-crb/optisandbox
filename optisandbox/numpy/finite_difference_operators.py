@@ -1,4 +1,4 @@
-from aerosandbox.numpy.array import array, length
+from optisandbox.numpy.array import array, length
 import numpy as _onp
 
 
@@ -6,7 +6,7 @@ def finite_difference_coefficients(
         x: _onp.ndarray,
         x0: float = 0,
         derivative_degree: int = 1,
-) -> _onp.ndarray:
+) -> _onp.ndarray | ValueError:
     """
     Computes the weights (coefficients) in compact finite differece formulas for any order of derivative
     and to any order of accuracy on one-dimensional grids with arbitrary spacing.
@@ -31,7 +31,7 @@ def finite_difference_coefficients(
         provide at least as many grid points as the degree of the derivative that you're interested in, plus 1.
 
             The order of accuracy of your derivative depends in part on the number of grid points that you provide.
-            Specifically:
+            'Specifically:
 
                 order_of_accuracy = n_grid_points - derivative_degree
 
@@ -51,14 +51,14 @@ def finite_difference_coefficients(
     grid points `x`.
 
     """
-    ### Check inputs
+    # Check inputs
     if derivative_degree < 1:
         return ValueError("The parameter derivative_degree must be an integer >= 1.")
     expected_order_of_accuracy = length(x) - derivative_degree
     if expected_order_of_accuracy < 1:
         return ValueError("You need to provide at least (derivative_degree+1) grid points in the x vector.")
 
-    ### Implement algorithm; notation from paper in docstring.
+    # Implement algorithm; notation from paper in docstring.
     N = length(x) - 1
 
     delta = _onp.zeros(
@@ -86,9 +86,9 @@ def finite_difference_coefficients(
                                  ) / c3
         for m in range(min(n, derivative_degree) + 1):
             delta[m, n, n] = (
-                    c1 / c2 * (
+                c1 / c2 * (
                     m * delta[m - 1, n - 1, n - 1] - (x[n - 1] - x0) * delta[m, n - 1, n - 1]
-            )
+                )
             )
         c1 = c2
 

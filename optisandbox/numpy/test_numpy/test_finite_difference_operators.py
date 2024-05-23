@@ -1,6 +1,5 @@
 import pytest
-import aerosandbox as asb
-import aerosandbox.numpy as np
+import optisandbox.numpy as np
 
 
 def test_uniform_forward_difference_first_degree():

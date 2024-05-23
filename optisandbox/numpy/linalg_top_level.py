@@ -1,6 +1,6 @@
 import numpy as _onp
 import casadi as _cas
-from aerosandbox.numpy.determine_type import is_casadi_type
+from optisandbox.numpy.determine_type import is_casadi_type
 
 
 def dot(a, b, manual=False):

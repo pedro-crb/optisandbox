@@ -1,4 +1,4 @@
-import aerosandbox.numpy as _np
+import optisandbox.numpy as _np
 import casadi as _cas
 from typing import Tuple, Union
 
@@ -35,7 +35,7 @@ def softmax(
     Returns:
         Soft maximum of the supplied values.
     """
-    ### Set defaults for hardness/softness
+    # Set defaults for hardness/softness
     n_specified_arguments = (hardness is not None) + (softness is not None)
     if n_specified_arguments == 0:
         softness = 1
@@ -55,10 +55,10 @@ def softmax(
         raise ValueError("You must call softmax with the value of two or more arrays that you'd like to take the "
                          "element-wise softmax of.")
 
-    ### Scale the args by softness
+    # Scale the args by softness
     args = [arg / softness for arg in args]
 
-    ### Find the element-wise max and min of the arrays:
+    # Find the element-wise max and min of the arrays:
     min = args[0]
     max = args[0]
     for arg in args[1:]:
@@ -190,27 +190,27 @@ def sigmoid(
             * "tanh" or "logistic" (same thing)
             * "arctan"
             * "polynomial"
-        normalization_type: Range in which to normalize the sigmoid, shorthanded here in the
+        normalization_range: Range in which to normalize the sigmoid, shorthanded here in the
             documentation as "N". This parameter is given as a two-element tuple (min, max).
 
             After normalization:
-                >>> sigmoid(-Inf) == normalization_range[0]
-                >>> sigmoid(Inf) == normalization_range[1]
+                .>>> sigmoid(-Inf) == normalization_range[0]
+                .>>> sigmoid(Inf) == normalization_range[1]
 
             * In the special case of N = (0, 1):
-                >>> sigmoid(-Inf) == 0
-                >>> sigmoid(Inf) == 1
-                >>> sigmoid(0) == 0.5
-                >>> d(sigmoid)/dx at x=0 == 0.5
+                .>>> sigmoid(-Inf) == 0
+                .>>> sigmoid(Inf) == 1
+                .>>> sigmoid(0) == 0.5
+                .>>> d(sigmoid)/dx at x=0 == 0.5
             * In the special case of N = (-1, 1):
-                >>> sigmoid(-Inf) == -1
-                >>> sigmoid(Inf) == 1
-                >>> sigmoid(0) == 0
-                >>> d(sigmoid)/dx at x=0 == 1
+                .>>> sigmoid(-Inf) == -1
+                .>>> sigmoid(Inf) == 1
+                .>>> sigmoid(0) == 0
+                .>>> d(sigmoid)/dx at x=0 == 1
 
     Returns: The value of the sigmoid.
     """
-    ### Sigmoid equations given here under the (-1, 1) normalization:
+    # Sigmoid equations given here under the (-1, 1) normalization:
     if sigmoid_type == ("tanh" or "logistic"):
         # Note: tanh(x) is simply a scaled and shifted version of a logistic curve.
         s = _np.tanh(x)
@@ -221,7 +221,7 @@ def sigmoid(
     else:
         raise ValueError("Bad value of parameter 'type'!")
 
-    ### Normalize
+    # Normalize
     min = normalization_range[0]
     max = normalization_range[1]
     s_normalized = s * (max - min) / 2 + (max + min) / 2

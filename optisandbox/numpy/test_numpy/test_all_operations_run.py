@@ -1,34 +1,34 @@
-from aerosandbox import Opti
+from optisandbox import Opti
 import pytest
-import aerosandbox.numpy as np
+import optisandbox.numpy as np
 
-### Cause all NumPy warnings to raise exceptions, to make this bulletproof
+# Cause all NumPy warnings to raise exceptions, to make this bulletproof
 np.seterr(all='raise')
 
 
 @pytest.fixture
 def types():
-    ### Float data types
+    # Float data types
     scalar_float = 1.
 
-    ### NumPy data types
+    # NumPy data types
     scalar_np = np.array(1)
     vector_np = np.array([1, 1])
     matrix_np = np.ones((2, 2))
 
-    ### CasADi data types
+    # CasADi data types
     opti = Opti()
     scalar_cas = opti.variable(init_guess=1)
     vector_cas = opti.variable(n_vars=2, init_guess=1)
 
-    ### Dynamically-typed data type creation (i.e. type depends on inputs)
+    # Dynamically-typed data type creation (i.e. type depends on inputs)
     vector_dynamic = np.array([scalar_cas, scalar_cas])  # vector as a dynamic-typed array
     matrix_dynamic = np.array([  # matrix as an dynamic-typed array
         [scalar_cas, scalar_cas],
         [scalar_cas, scalar_cas]
     ])
 
-    ### Create lists of possible variable types for scalars, vectors, and matrices.
+    # Create lists of possible variable types for scalars, vectors, and matrices.
     scalar_options = [scalar_float, scalar_cas, scalar_np]
     vector_options = [vector_cas, vector_np, vector_dynamic]
     matrix_options = [matrix_np, matrix_dynamic]
@@ -37,10 +37,11 @@ def types():
         "scalar": scalar_options,
         "vector": vector_options,
         "matrix": matrix_options,
-        "all"   : scalar_options + vector_options + matrix_options
+        "all": scalar_options + vector_options + matrix_options
     }
 
 
+# noinspection PyStatementEffect
 def test_indexing_1D(types):
     for x in types["vector"] + types["matrix"]:
         x[0]  # The first element of x
@@ -51,6 +52,7 @@ def test_indexing_1D(types):
         x[::-1]  # The elements of x, but in reversed order
 
 
+# noinspection PyStatementEffect
 def test_indexing_2D(types):
     for x in types["matrix"]:
         x[0, :]  # The first row of x
@@ -61,14 +63,14 @@ def test_indexing_2D(types):
 def test_basic_math(types):
     for x in types["all"]:
         for y in types["all"]:
-            ### Arithmetic
+            # Arithmetic
             x + y
             x - y
             x * y
             x / y
             np.sum(x)  # Sum of all entries of array-like object x
 
-            ### Exponentials & Powers
+            # Exponentials & Powers
             x ** y
             np.power(x, y)
             np.exp(x)
@@ -76,7 +78,7 @@ def test_basic_math(types):
             np.log10(x)
             np.sqrt(x)  # Note: do x ** 0.5 rather than np.sqrt(x).
 
-            ### Trig
+            # Trig
             np.sin(x)
             np.cos(x)
             np.tan(x)
@@ -92,6 +94,7 @@ def test_basic_math(types):
             np.arctanh(x - 0.5)  # `- 0.5` to give valid argument
 
 
+# noinspection PyStatementEffect
 def test_logic(types):
     for option_set in [
         types["scalar"],
@@ -100,7 +103,7 @@ def test_logic(types):
     ]:
         for x in option_set:
             for y in option_set:
-                ### Comparisons
+                # Comparisons
                 """
                 Note: if warnings appear here, they're from `np.array(1) == cas.MX(1)` - 
                 sensitive to order, as `cas.MX(1) == np.array(1)` is fine.
@@ -115,14 +118,14 @@ def test_logic(types):
                 x < y
                 x <= y
 
-                ### Conditionals
+                # Conditionals
                 np.where(
                     x > 1,
                     x ** 2,
                     0
                 )
 
-                ### Elementwise min/max
+                # Elementwise min/max
                 np.fmax(x, y)
                 np.fmin(x, y)
 
@@ -133,6 +136,7 @@ def test_logic(types):
         np.clip(x, 0, 1)
 
 
+# noinspection PyStatementEffect
 def test_vector_math(types):
     for x in types["vector"]:
         for y in types["vector"]:
@@ -142,6 +146,7 @@ def test_vector_math(types):
             np.linalg.norm(x)
 
 
+# noinspection PyStatementEffect
 def test_matrix_math(types):
     for v in types["vector"]:
         for m in types["matrix"]:

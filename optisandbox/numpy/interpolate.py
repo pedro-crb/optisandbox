@@ -1,9 +1,9 @@
 import numpy as _onp
 import casadi as _cas
-from aerosandbox.numpy.determine_type import is_casadi_type
-from aerosandbox.numpy.array import array, zeros_like
-from aerosandbox.numpy.conditionals import where
-from aerosandbox.numpy.logicals import all, any, logical_or
+from optisandbox.numpy.determine_type import is_casadi_type
+from optisandbox.numpy.array import array, zeros_like
+from optisandbox.numpy.conditionals import where
+from optisandbox.numpy.logicals import all, any, logical_or
 from typing import Tuple
 from scipy import interpolate as _interpolate
 
@@ -30,7 +30,7 @@ def interp(x, xp, fp, left=None, right=None, period=None):
         )
 
     else:
-        ### Handle period argument
+        # Handle period argument
         if period is not None:
             if any(
                     logical_or(
@@ -39,33 +39,33 @@ def interp(x, xp, fp, left=None, right=None, period=None):
                     )
             ):
                 raise NotImplementedError(
-                    "Haven't yet implemented handling for if xp is outside the period.")  # Not easy to implement because casadi doesn't have a sort feature.
+                    "Haven't yet implemented handling for if xp is outside the period.")
+                # Not easy to implement because casadi doesn't have a sort feature.
 
             x = _cas.fmod(x, period)
 
-        ### Make sure x isn't an int
+        # Make sure x isn't an int
         if isinstance(x, int):
             x = float(x)
 
-        ### Make sure that x is an iterable
+        # Make sure that x is an iterable
         try:
             x[0]
         except TypeError:
             x = array([x], dtype=float)
 
-        ### Make sure xp is an iterable
+        # Make sure xp is an iterable
         xp = array(xp, dtype=float)
 
-
-        ### Do the interpolation
+        # Do the interpolation
         if is_casadi_type([x, xp], recursive=True):
-            grid = [xp.shape[0]] # size of grid, list is used since can be multi-dimensional
-            cas_interp = _cas.interpolant('cs_interp','linear',grid,1,{"inline": True})
-            f = cas_interp(x,xp,fp)
+            grid = [xp.shape[0]]  # size of grid, list is used since can be multi-dimensional
+            cas_interp = _cas.interpolant('cs_interp', 'linear', grid, 1, {"inline": True})
+            f = cas_interp(x, xp, fp)
         else:
             f = _cas.interp1d(xp, fp, x)
 
-        ### Handle left/right
+        # Handle left/right
         if left is not None:
             f = where(
                 x < xp[0],
@@ -79,7 +79,6 @@ def interp(x, xp, fp, left=None, right=None, period=None):
                 f
             )
 
-        ### Return
         return f
 
 
@@ -92,7 +91,8 @@ def is_data_structured(
 
     For this to evaluate True, the inputs should be:
 
-        x_data_coordinates: A tuple or list of 1D ndarrays that represent coordinates along each axis of a N-dimensional hypercube.
+        x_data_coordinates: A tuple or list of 1D ndarrays that represent coordinates along each axis of a
+        N-dimensional hypercube.
 
         y_data_structured: The values of some scalar defined on that N-dimensional hypercube, expressed as an
         N-dimesional array. In other words, y_data_structured is evaluated at `np.meshgrid(*x_data_coordinates,
@@ -123,7 +123,7 @@ def interpn(
         method: str = "linear",
         bounds_error=True,
         fill_value=_onp.nan
-) -> _onp.ndarray:
+) -> _onp.ndarray | float:
     """
     Performs multidimensional interpolation on regular grids. Analogue to scipy.interpolate.interpn().
 
@@ -157,24 +157,24 @@ def interpn(
     Returns: Interpolated values at input coordinates.
 
     """
-    ### Check input types for points and values
+    # Check input types for points and values
     if is_casadi_type([points, values], recursive=True):
         raise TypeError("The underlying dataset (points, values) must consist of NumPy arrays.")
 
-    ### Check dimensions of points
+    # Check dimensions of points
     for points_axis in points:
         points_axis = array(points_axis)
         if not len(points_axis.shape) == 1:
             raise ValueError("`points` must consist of a tuple of 1D ndarrays defining the coordinates of each axis.")
 
-    ### Check dimensions of values
+    # Check dimensions of values
     implied_values_shape = tuple(len(points_axis) for points_axis in points)
     if not values.shape == implied_values_shape:
         raise ValueError(f"""
         The shape of `values` should be {implied_values_shape}. 
         """)
 
-    if (  ### NumPy implementation
+    if (  # NumPy implementation
             not is_casadi_type([points, values, xi], recursive=True)
     ) and (
             (method == "linear") or (method == "nearest")
@@ -189,27 +189,27 @@ def interpn(
             fill_value=fill_value
         )
 
-    elif (  ### CasADi implementation
+    elif (  # CasADi implementation
             (method == "linear") or (method == "bspline")
     ):
-        ### Add handling to patch a specific bug in CasADi that occurs when `values` is all zeros.
-        ### For more information, see: https://github.com/casadi/casadi/issues/2837
+        # Add handling to patch a specific bug in CasADi that occurs when `values` is all zeros.
+        # For more information, see: https://github.com/casadi/casadi/issues/2837
         if method == "bspline" and all(values == 0):
             return zeros_like(xi)
 
-        ### If xi is an int or float, promote it to an array
+        # If xi is an int or float, promote it to an array
         if isinstance(xi, int) or isinstance(xi, float):
             xi = array([xi])
 
-        ### If xi is a NumPy array and 1D, convert it to 2D for this.
+        # If xi is a NumPy array and 1D, convert it to 2D for this.
         if not is_casadi_type(xi, recursive=False) and len(xi.shape) != 2:
             xi = _onp.reshape(xi, (-1, 1))
 
-        ### Check that xi is now 2D
+        # Check that xi is now 2D
         if not len(xi.shape) == 2:
             raise ValueError("`xi` must have the shape (n_points, n_dimensions)!")
 
-        ### Transpose xi so that xi.shape is [n_points, n_dimensions].
+        # Transpose xi so that xi.shape is [n_points, n_dimensions].
         n_dimensions = len(points)
         if not len(points) in xi.shape:
             raise ValueError("`xi` must have the shape (n_points, n_dimensions)!")
@@ -218,7 +218,7 @@ def interpn(
             xi = xi.T
             assert xi.shape[1] == n_dimensions
 
-        ### Calculate the minimum and maximum values along each axis.
+        # Calculate the minimum and maximum values along each axis.
         axis_values_min = [
             _onp.min(axis_values)
             for axis_values in points
@@ -228,7 +228,7 @@ def interpn(
             for axis_values in points
         ]
 
-        ### If fill_value is None, project the xi back onto the nearest point in the domain.
+        # If fill_value is None, project the xi back onto the nearest point in the domain.
         if fill_value is None:
             for axis in range(n_dimensions):
 
@@ -243,7 +243,7 @@ def interpn(
                     xi[:, axis]
                 )
 
-        ### Check bounds_error
+        # Check bounds_error
         if bounds_error:
             if isinstance(xi, _cas.MX):
                 raise ValueError("Can't have the `bounds_error` flag as True if `xi` is of cas.MX type.")
@@ -260,7 +260,7 @@ def interpn(
                         f"One of the requested xi is out of bounds in dimension {axis}"
                     )
 
-        ### Do the interpolation
+        # Do the interpolation
         values_flattened = _onp.ravel(values, order='F')
         interpolator = _cas.interpolant(
             'Interpolator',
@@ -271,7 +271,7 @@ def interpn(
 
         fi = interpolator(xi.T).T
 
-        ### If fill_value is a scalar, replace all out-of-bounds xi with that value.
+        # If fill_value is a scalar, replace all out-of-bounds xi with that value.
         if fill_value is not None:
             for axis in range(n_dimensions):
 
@@ -286,7 +286,7 @@ def interpn(
                     fi
                 )
 
-        ### If DM output (i.e. a numeric value), convert that back to an array
+        # If DM output (i.e. a numeric value), convert that back to an array
         if isinstance(fi, _cas.DM):
             if fi.shape == (1, 1):
                 return float(fi)

@@ -1,6 +1,6 @@
-from aerosandbox.numpy.array import *
+from optisandbox.numpy.array import *
 import pytest
-import aerosandbox.numpy as np
+import optisandbox.numpy as np
 import casadi as cas
 
 
@@ -150,6 +150,7 @@ def test_diag_casadi():
     # assert np.all(np.diag(c) == np.array([1, 5]))
     # assert np.all(np.diag(c, k=1) == np.array([2, 6]))
     # assert np.all(np.diag(c, k=-1) == np.array([4]))
+
 
 def test_roll_onp():
     # Test on 1D array
@@ -344,7 +345,6 @@ def test_reshape_2D():
 
 def test_assert_equal_shape():
     a = np.array([1, 2, 3])
-    b = cas.DM(a)
 
     np.assert_equal_shape([
         a,
@@ -363,22 +363,8 @@ def test_assert_equal_shape():
             "thing1": np.array([1, 2, 3]),
             "thing2": np.array([1, 2, 3, 4])
         })
-    np.assert_equal_shape([
-        2,
-        3,
-        4
-    ])
+    np.assert_equal_shape([2, 3, 4])
 
 
 if __name__ == '__main__':
-    # # Test on 1D array
-    # a_np = np.arange(1, 101)
-    # a = cas.SX(a_np)
-    # b = cas.SX(np.concatenate([np.arange(91, 101), np.arange(1, 91)]))
-    #
-    # s1 = np.roll(a, -10, axis=0)
-    # s2 = np.roll(a, 90, axis=0)
-    #
-    # assert np.all(cas.DM(s1) == cas.DM(s2))
-
     pytest.main()

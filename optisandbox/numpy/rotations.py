@@ -1,5 +1,5 @@
-from aerosandbox.numpy import sin, cos, linalg
-from aerosandbox.numpy.array import array
+from optisandbox.numpy import sin, cos, linalg
+from optisandbox.numpy.array import array
 import numpy as _onp
 from typing import Union, List
 
@@ -124,10 +124,10 @@ def rotation_matrix_from_euler_angles(
 
     Note: To use this, pre-multiply your vector to go from body axes to earth axes.
         Example:
-            >>> vector_earth = rotation_matrix_from_euler_angles(np.pi / 4, np.pi / 4, np.pi / 4) @ vector_body
+            '>>> vector_earth = rotation_matrix_from_euler_angles(np.pi / 4, np.pi / 4, np.pi / 4) @ vector_body
 
     See notes:
-    http://planning.cs.uiuc.edu/node102.html
+    https://planning.cs.uiuc.edu/node102.html
 
     Args:
         roll_angle: The roll angle, which is a rotation about the x-axis. [radians]

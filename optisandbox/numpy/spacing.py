@@ -1,6 +1,6 @@
 import numpy as _onp
 import casadi as _cas
-from aerosandbox.numpy.determine_type import is_casadi_type
+from optisandbox.numpy.determine_type import is_casadi_type
 
 
 def linspace(
@@ -33,7 +33,7 @@ def cosspace(
 
     Args:
         start: Value to start at.
-        end: Value to end at.
+        stop: Value to end at.
         num: Number of points in the vector.
     """
     mean = (stop + start) / 2
@@ -71,7 +71,7 @@ def sinspace(
 
         start: Value to start at.
 
-        end: Value to end at.
+        stop: Value to end at.
 
         num: Number of points in the vector.
 
@@ -86,10 +86,11 @@ def sinspace(
     ones = 0 * start + 1
     spaced_array = (
             start + (stop - start) * (1 - _onp.cos(linspace(
-        0 * ones,
-        _onp.pi / 2 * ones,
-        num
-    ))
+                0 * ones,
+                _onp.pi / 2 * ones,
+                num
+                )
+            )
                                       )
     )
     # Fix the endpoints, which might not be exactly right due to floating-point error.

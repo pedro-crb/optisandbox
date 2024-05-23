@@ -1,24 +1,19 @@
-### Import everything from NumPy
-
 from numpy import *
 
-### Overwrite some functions
-from aerosandbox.numpy.array import *
-from aerosandbox.numpy.arithmetic_monadic import *
-from aerosandbox.numpy.arithmetic_dyadic import *
-from aerosandbox.numpy.calculus import *
-from aerosandbox.numpy.conditionals import *
-from aerosandbox.numpy.finite_difference_operators import *
-from aerosandbox.numpy.integrate import *
-from aerosandbox.numpy.interpolate import *
-from aerosandbox.numpy.linalg_top_level import *
-import aerosandbox.numpy.linalg as linalg
-from aerosandbox.numpy.logicals import *
-from aerosandbox.numpy.rotations import *
-from aerosandbox.numpy.spacing import *
-from aerosandbox.numpy.surrogate_model_tools import *
-from aerosandbox.numpy.trig import *
+from optisandbox.numpy.array import *
+from optisandbox.numpy.arithmetic_monadic import *
+from optisandbox.numpy.arithmetic_dyadic import *
+from optisandbox.numpy.calculus import *
+from optisandbox.numpy.conditionals import *
+from optisandbox.numpy.finite_difference_operators import *
+from optisandbox.numpy.integrate import *
+from optisandbox.numpy.interpolate import *
+from optisandbox.numpy.linalg_top_level import *
+import optisandbox.numpy.linalg as linalg
+from optisandbox.numpy.logicals import *
+from optisandbox.numpy.rotations import *
+from optisandbox.numpy.spacing import *
+from optisandbox.numpy.surrogate_model_tools import *
+from optisandbox.numpy.trig import *
 
-### Force-overwrite built-in Python functions.
-
-from numpy import round  # TODO check that min, max are properly imported
+from numpy import round

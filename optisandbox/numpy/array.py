@@ -1,7 +1,7 @@
 import numpy as _onp
 import casadi as _cas
-from typing import List, Tuple, Dict, Union, Sequence
-from aerosandbox.numpy.determine_type import is_casadi_type
+from typing import List, Dict, Union, Sequence
+from optisandbox.numpy.determine_type import is_casadi_type
 
 
 def array(array_like, dtype=None):
@@ -14,8 +14,7 @@ def array(array_like, dtype=None):
         # Handles inputs like cas.DM([1, 2, 3])
         return array_like
 
-    elif not is_casadi_type(array_like,
-                            recursive=True) or dtype is not None:
+    elif not is_casadi_type(array_like, recursive=True) or dtype is not None:
         # If you were given a list of iterables that don't have CasADi types:
         # Handles inputs like [[1, 2, 3], [4, 5, 6]]
         return _onp.array(array_like, dtype=dtype)
@@ -65,13 +64,12 @@ def stack(arrays: Sequence, axis: int = 0):
         return _onp.stack(arrays, axis=axis)
 
     else:
-        ### Validate stackability
-        for array in arrays:
-            if is_casadi_type(array, recursive=False):
-                if not array.shape[1] == 1:
+        for _array in arrays:
+            if is_casadi_type(_array, recursive=False):
+                if not _array.shape[1] == 1:
                     raise ValueError("Can only stack Nx1 CasADi arrays!")
             else:
-                if not len(array.shape) == 1:
+                if not len(_array.shape) == 1:
                     raise ValueError("Can only stack 1D NumPy ndarrays alongside CasADi arrays!")
 
         if axis == 0 or axis == -2:
@@ -418,7 +416,8 @@ def assert_equal_shape(
 
                 * List, in which case a generic ValueError is thrown
 
-                * Dictionary consisting of name:array pairs for key:value, in which case the names are given in the ValueError.
+                * Dictionary consisting of name:array pairs for key:value,
+                in which case the names are given in the ValueError.
 
     Returns: None. Throws an error if leng
 
@@ -429,16 +428,16 @@ def assert_equal_shape(
     except AttributeError:
         names = None
 
-    def get_shape(array):
+    def get_shape(_array):
         try:
-            return array.shape
+            return _array.shape
         except AttributeError:  # If it's a float/int
             return ()
 
     shape = get_shape(arrays[0])
 
-    for array in arrays[1:]:
-        if not get_shape(array) == shape:
+    for _array in arrays[1:]:
+        if not get_shape(_array) == shape:
             if names is None:
                 raise ValueError("The given arrays do not have the same shape!")
             else:
