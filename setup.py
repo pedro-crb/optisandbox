@@ -18,13 +18,10 @@ with open(init_path) as f:
 setup(
     name='OptiSandbox',
     version=version,
-    description='Optisandbox is a standalone version of the numpy and optimization modules from Aerosandbox',
+    description="Optisandbox is a standalone version of the numpy and optimization "
+                "modules from Peter Sharpe's Aerosandbox",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/pedro-crb/optisandbox',
-    author='Pedro Ribeiro',
-    author_email='pedro.c.rib@usp.br',
-    keywords='automatic differetiation optimization',
     python_requires='>=3.11',
     packages=find_packages(),
     install_requires=[
