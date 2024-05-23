@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
 
 README_path = Path(__file__).parent / "README.md"
@@ -18,12 +18,15 @@ with open(init_path) as f:
 setup(
     name='OptiSandbox',
     version=version,
-    description='Optisandbox is a standalone version of the numpy and optimization modules extracted from Aerosandbox',
+    description='Optisandbox is a standalone version of the numpy and optimization modules from Aerosandbox',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/pedro-crb/optisandbox',
+    author='Pedro Ribeiro',
+    author_email='pedro.c.rib@usp.br',
     keywords='automatic differetiation optimization',
-    python_requires='>=3.8',
+    python_requires='>=3.11',
+    packages=find_packages(),
     install_requires=[
         'numpy >= 1.20.0, <2.0a0',
         'scipy >= 1.7.0',
